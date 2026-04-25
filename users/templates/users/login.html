@@ -1,0 +1,43 @@
+{% extends "products/base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="mb-4">Login</h3>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-info">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ field.label }}</label>
+                            <input
+                                type="{{ field.field.widget.input_type }}"
+                                name="{{ field.html_name }}"
+                                class="form-control {% if field.errors %}is-invalid{% endif %}"
+                            >
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-dark w-100">Login</button>
+                </form>
+
+                <p class="text-center mt-3 mb-0">
+                    Don't have an account? <a href="{% url 'users:register' %}">Register</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
