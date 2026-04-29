@@ -12,6 +12,7 @@
                 <p><strong>Email:</strong> {{ request.user.email }}</p>
                 <p><strong>Member since:</strong> {{ request.user.date_joined|date:"F d, Y" }}</p>
                 <hr>
+                <a href="{% url 'orders:order_list' %}" class="btn btn-dark me-2">My Orders</a>
                 <a href="{% url 'users:logout' %}" class="btn btn-outline-danger">Logout</a>
             </div>
         </div>
