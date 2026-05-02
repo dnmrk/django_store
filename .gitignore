@@ -18,3 +18,4 @@ db.sqlite3-journal
 # Static/Media (if you want to ignore user uploads)
 media/
 static/
+.claude/ralph-loop.local.md

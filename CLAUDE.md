@@ -1,48 +1,75 @@
-# CLAUDE.md
+# Django Store
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Full-stack e-commerce app — Django 4.2 REST API backend + React 19 SPA frontend with JWT auth, product catalog, cart, and orders.
+
+## Tech Stack
+
+- **Backend**: Django 4.2, Django REST Framework 3.16, djangorestframework-simplejwt 5.5
+- **Language**: Python 3.9
+- **Frontend**: React 19, Vite 8, React Router 7, TanStack Query 5, Bootstrap 5
+- **Database**: SQLite (dev only)
+- **Testing**: Django built-in test runner
+- **Linting**: ESLint (frontend)
 
 ## Setup
 
-Activate the virtual environment before running any commands:
-
 ```bash
+# Backend
 source venv/bin/activate
+
+# Frontend
+cd frontend && npm install
 ```
 
 ## Commands
 
 ```bash
-# Run development server
+# Run backend dev server
 python manage.py runserver
 
-# Run tests
+# Run frontend dev server
+cd frontend && npm run dev
+
+# Run tests (parallel — default)
+python manage.py test --parallel
+
+# Run tests (sequential — for debugging)
 python manage.py test
 
-# Run a specific test
-python manage.py test products.tests.MyTestCase
+# Run specific app tests
+python manage.py test products
 
-# Create and apply migrations
-python manage.py makemigrations
-python manage.py migrate
+# Lint frontend
+cd frontend && npm run lint
 
-# Open Django shell
-python manage.py shell
-
-# Create superuser (for admin access)
-python manage.py createsuperuser
+# Migrations
+python manage.py makemigrations && python manage.py migrate
 ```
 
-## Architecture
+## Project Structure
 
-This is a Django 4.2 e-commerce store project. The Django project config lives in `store/` (settings, root URLs, wsgi/asgi). All product domain logic lives in the `products/` app.
+- `store/` — Project config (settings, root URLs)
+- `products/` — Product catalog (Category, Product models + API)
+- `cart/` — Cart management (session + API)
+- `orders/` — Order processing (Order, OrderItem models + API)
+- `users/` — Auth (JWT register/login endpoints)
+- `frontend/src/` — React SPA (api/, components/, context/, pages/)
 
-**Data model:** `Category` has many `Product`s (FK with CASCADE). Products have `available`/`stock` fields that control storefront visibility. Product images upload to `media/products/` and are served via `MEDIA_URL` in development.
+## Key Rules
 
-**URL routing:** Root URLs (`store/urls.py`) delegate everything except `/admin/` to `products.urls` (namespace `products`). Two views: `product_list` (homepage, filters `available=True`) and `product_detail` (slug lookup).
+- Activate `venv` before all Python/Django commands
+- API URL files are named `api_urls.py`; template URL files are `urls.py`
+- Use `APITestCase` from `rest_framework.test` for API tests
+- Use `select_related`/`prefetch_related` to avoid N+1 queries
+- JWT tokens in localStorage; injected via Axios interceptor in `frontend/src/api/axios.js`
+- TanStack Query for all server state in React — no raw `useEffect` data fetching
+- New API endpoints need both the view and a route in `api_urls.py`
 
-**Templates:** All templates live under `products/templates/products/` and extend `base.html`, which loads Bootstrap 5 from CDN.
+## Detailed Configuration
 
-**Database:** SQLite (`db.sqlite3`) — development only.
-
-**Admin:** Both `Category` and `Product` are registered with slug auto-population from name.
+Project configuration files are in `.claude/`:
+- `project-overview.md` — Project identity and philosophy
+- `architecture.md` — Technical patterns and structure
+- `testing.md` — Test configuration and commands
+- `code-standards.md` — Coding conventions
+- `pipeline.md` — Autonomous development workflow agents
