@@ -63,7 +63,7 @@ ROOT_URLCONF = 'store.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -169,3 +169,9 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Allow Shiny dashboard to be embedded
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Allow iframe to load Shiny from localhost
+CONTENT_SECURITY_POLICY = "frame-src 'self' http://localhost:8001;"

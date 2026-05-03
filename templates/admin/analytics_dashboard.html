@@ -1,0 +1,113 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content_title %}
+<h1 style="margin-bottom: 0;">📊 Store Analytics Dashboard</h1>
+{% endblock %}
+
+{% block content %}
+<div style="margin-top: 16px;">
+
+    <!-- Status bar -->
+    <div style="
+        background: #1a1a2e;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    ">
+        <div>
+            <strong>Live Analytics</strong>
+            <span style="color: #aaa; margin-left: 8px;">
+                Powered by Shiny for Python
+            </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="
+                background: #4ECDC4;
+                color: #04342C;
+                padding: 2px 10px;
+                border-radius: 99px;
+                font-size: 11px;
+                font-weight: 600;
+            ">shiny</span>
+            
+                href="http://localhost:8001"
+                target="_blank"
+                style="color: #aaa; font-size: 12px; text-decoration: none;"
+            >
+                Open in new tab ↗
+            </a>
+        </div>
+    </div>
+
+    <!-- Shiny iframe -->
+    <iframe
+        id="shiny-frame"
+        src="http://localhost:8001"
+        style="
+            width: 100%;
+            height: 85vh;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            background: #f8f9fa;
+        "
+        frameborder="0"
+    ></iframe>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" style="
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+        font-size: 14px;
+        color: #888;
+    ">
+        Loading dashboard...
+    </div>
+
+</div>
+
+<script>
+    const iframe = document.getElementById('shiny-frame')
+    const overlay = document.getElementById('loading-overlay')
+
+    // Hide loading overlay once iframe loads
+    iframe.addEventListener('load', () => {
+        overlay.style.display = 'none'
+    })
+
+    // Show error message if Shiny is not running
+    iframe.addEventListener('error', () => {
+        overlay.innerHTML = `
+            <div style="text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 12px;">⚠️</div>
+                <div style="font-weight: 600; margin-bottom: 8px;">
+                    Shiny dashboard is not running
+                </div>
+                <div style="color: #888; font-size: 13px; margin-bottom: 16px;">
+                    Start it with the command below
+                </div>
+                <code style="
+                    background: #1a1a2e;
+                    color: #4ECDC4;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                ">
+                    cd analytics && shiny run app.py --port 8001
+                </code>
+            </div>
+        `
+    })
+</script>
+{% endblock %}

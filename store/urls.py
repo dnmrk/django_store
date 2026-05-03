@@ -18,8 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render
+from .admin import StorAdminSite
+
+# Override the default admin site
+admin.site.__class__ = StorAdminSite 
+
+@staff_member_required
+def analytics_dashboard(request):
+    return render(request, 'admin/analytics_dashboard.html')
 
 urlpatterns = [
+    path('admin/dashboard/', analytics_dashboard, name='analytics_dashboard'),
     path('admin/', admin.site.urls),
     path('api/products/', include('products.api_urls')),
     path('api/cart/', include('cart.api_urls')),
