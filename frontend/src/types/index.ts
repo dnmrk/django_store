@@ -119,3 +119,25 @@ export interface OrderCreateData {
 // ─── Forms ───────────────────────────────────────────────────────────────────
 
 export type FormErrors = Record<string, string | string[]>
+
+
+
+export interface ForecastPoint {
+  date: string
+  revenue: number
+}
+
+export interface ForecastSummary {
+  days_ahead: number
+  total_forecast_revenue: number
+  avg_daily_revenue: number
+  forecast_start: string
+  forecast_end: string
+}
+
+export interface RevenueForecast {
+  historical: ForecastPoint[]
+  forecast: ForecastPoint[]
+  summary: ForecastSummary
+  error?: string
+}

@@ -13,6 +13,7 @@ import OrderListPage from './pages/OrderListPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
+import ForecastPage from './pages/ForecastPage'
 
 const queryClient = new QueryClient()
 
@@ -43,6 +44,9 @@ export default function App() {
               } />
               <Route path="/profile" element={
                 <ProtectedRoute><ProfilePage /></ProtectedRoute>
+              } />
+              <Route path="/forecast" element={
+                <ProtectedRoute><ForecastPage /></ProtectedRoute>
               } />
             </Routes>
           </BrowserRouter>

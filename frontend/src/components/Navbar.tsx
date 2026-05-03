@@ -20,6 +20,10 @@ export default function Navbar() {
           )}
         </Link>
 
+        <Link to="/forecast" className="text-white text-decoration-none">
+          📈 Forecast
+        </Link>
+
         {user ? (
           <>
             <Link to="/profile" className="text-white text-decoration-none">

@@ -114,3 +114,12 @@ def get_kpis() -> dict:
         "avg_order_value": kpi_row["avg_order_value"] or 0,
         "low_stock_count": int(low_stock_row["low_stock_count"] or 0),
     }
+
+def get_forecast_data(days_ahead: int = 30) -> dict:
+    import sys
+    sys.path.insert(0, str(BASE_DIR))
+    from forecasting.engine import forecast_revenue, forecast_product_demand
+    return {
+        "revenue": forecast_revenue(days_ahead),
+        "products": forecast_product_demand(days_ahead),
+    }

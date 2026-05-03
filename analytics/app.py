@@ -1,5 +1,6 @@
 from shiny import App, ui, render, reactive
 import pandas as pd
+import plotly.graph_objects as go
 from db import (
     get_kpis,
     get_revenue_over_time,
@@ -7,6 +8,7 @@ from db import (
     get_order_status_breakdown,
     get_top_products,
     get_low_stock_products,
+    get_forecast_data
 )
 from charts import revenue_chart, category_chart, status_chart
 
@@ -49,6 +51,28 @@ app_ui = ui.page_fluid(
             .badge-low { background: #FAEEDA; color: #854F0B; padding: 2px 8px;
                          border-radius: 99px; font-size: 11px; }
         """)
+    ),
+
+    ui.div({"class": "section-label"}, "Forecasting"),
+    ui.layout_columns(
+        ui.div(
+            {"class": "chart-card"},
+            ui.h6("Revenue forecast"),
+            ui.input_select(
+                "forecast_days",
+                label=None,
+                choices={"7": "7 days", "30": "30 days", "60": "60 days", "90": "90 days"},
+                selected="30",
+                width="140px",
+            ),
+            ui.output_ui("plot_forecast"),
+        ),
+        ui.div(
+            {"class": "chart-card"},
+            ui.h6("Restock alerts"),
+            ui.output_ui("table_restock"),
+        ),
+        col_widths=[7, 5],
     ),
 
     ui.div(
@@ -253,6 +277,80 @@ def server(input, output, session):
                 ui.tags.th("Category"),
                 ui.tags.th("Stock"),
                 ui.tags.th("Status"),
+            )),
+            ui.tags.tbody(*rows),
+        )
+    
+    @reactive.calc
+    def forecast_data():
+        input.refresh()
+        days = int(input.forecast_days())
+        return get_forecast_data(days)
+
+    @render.ui
+    def plot_forecast():
+        data = forecast_data()
+        revenue = data["revenue"]
+
+        if "error" in revenue:
+            fig = go.Figure()
+            fig.add_annotation(text=revenue["error"], showarrow=False)
+            return ui.HTML(fig.to_html(full_html=False, include_plotlyjs=False))
+
+        historical_dates = [p["date"] for p in revenue["historical"]]
+        historical_vals = [p["revenue"] for p in revenue["historical"]]
+        forecast_dates = [p["date"] for p in revenue["forecast"]]
+        forecast_vals = [p["revenue"] for p in revenue["forecast"]]
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=historical_dates, y=historical_vals,
+            mode="lines", name="Historical",
+            line=dict(color="#1D9E75", width=2),
+            fill="tozeroy", fillcolor="rgba(29,158,117,0.08)"
+        ))
+        fig.add_trace(go.Scatter(
+            x=forecast_dates, y=forecast_vals,
+            mode="lines", name="Forecast",
+            line=dict(color="#7F77DD", width=2, dash="dash"),
+            fill="tozeroy", fillcolor="rgba(127,119,221,0.08)"
+        ))
+        fig.update_layout(
+            margin=dict(l=0, r=0, t=10, b=0),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            legend=dict(orientation="h", y=-0.2),
+            hovermode="x unified",
+        )
+        return ui.HTML(fig.to_html(full_html=False, include_plotlyjs=False))
+
+    @render.ui
+    def table_restock():
+        data = forecast_data()
+        products = data["products"]
+        urgent = [p for p in products if p["needs_restock"]]
+
+        if not urgent:
+            return ui.p("No restock alerts.", style="color:#888;font-size:13px;")
+
+        rows = []
+        for p in urgent[:8]:
+            days_left = p["days_until_stockout"]
+            badge_class = "badge-critical" if days_left and days_left < 7 else "badge-low"
+            rows.append(ui.tags.tr(
+                ui.tags.td(p["product_name"]),
+                ui.tags.td(str(p["current_stock"])),
+                ui.tags.td(str(p["avg_daily_demand"])),
+                ui.tags.td(ui.span({"class": badge_class},
+                    f"{days_left}d" if days_left else "—")),
+            ))
+
+        return ui.tags.table(
+            ui.tags.thead(ui.tags.tr(
+                ui.tags.th("Product"),
+                ui.tags.th("Stock"),
+                ui.tags.th("Avg/day"),
+                ui.tags.th("Runs out"),
             )),
             ui.tags.tbody(*rows),
         )
