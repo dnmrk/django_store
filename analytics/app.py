@@ -15,6 +15,7 @@ from charts import revenue_chart, category_chart, status_chart
 app_ui = ui.page_fluid(
 
     ui.head_content(
+        ui.tags.script(src="https://cdn.plot.ly/plotly-2.32.0.min.js"),
         ui.tags.style("""
             body { background: #f8f9fa; font-family: sans-serif; }
             .topbar { background: #1a1a2e; color: white; padding: 14px 24px;
@@ -120,12 +121,12 @@ app_ui = ui.page_fluid(
             ui.div(
                 {"class": "chart-card"},
                 ui.h6("Revenue over time"),
-                ui.output_plot("plot_revenue"),
+                ui.output_ui("plot_revenue"),
             ),
             ui.div(
                 {"class": "chart-card"},
                 ui.h6("Sales by category"),
-                ui.output_plot("plot_category"),
+                ui.output_ui("plot_category"),
             ),
             col_widths=[7, 5],
         ),
@@ -136,7 +137,7 @@ app_ui = ui.page_fluid(
             ui.div(
                 {"class": "chart-card"},
                 ui.h6("Order status breakdown"),
-                ui.output_plot("plot_status"),
+                ui.output_ui("plot_status"),
             ),
             ui.div(
                 {"class": "chart-card"},
@@ -200,22 +201,25 @@ def server(input, output, session):
     def kpi_stock():
         return str(kpis()["low_stock_count"])
 
-    @render.plot
+    @render.ui
     def plot_revenue():
         df = revenue_data()
-        return revenue_chart(df)
+        fig = revenue_chart(df)
+        return ui.HTML(fig.to_html(full_html=False, include_plotlyjs=False))
 
-    @render.plot
+    @render.ui
     def plot_category():
         input.refresh()
         df = get_sales_by_category()
-        return category_chart(df)
+        fig = category_chart(df)
+        return ui.HTML(fig.to_html(full_html=False, include_plotlyjs=False))
 
-    @render.plot
+    @render.ui
     def plot_status():
         input.refresh()
         df = get_order_status_breakdown()
-        return status_chart(df)
+        fig = status_chart(df)
+        return ui.HTML(fig.to_html(full_html=False, include_plotlyjs=False))
 
     @render.table
     def table_top_products():
