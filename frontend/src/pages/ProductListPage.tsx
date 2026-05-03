@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getProducts, getCategories } from '../api/products'
 
 export default function ProductListPage() {
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('')
+  const [search, setSearch] = useState<string>('')
+  const [category, setCategory] = useState<string>('')
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products', search, category],

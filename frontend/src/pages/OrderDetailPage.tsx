@@ -15,7 +15,7 @@ export default function OrderDetailPage() {
 
     const { data: order, isLoading } = useQuery({
         queryKey: ['order', id],
-        queryFn: () => getOrder(id),
+        queryFn: () => getOrder(id!),
     })
 
     if (isLoading) return (

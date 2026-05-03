@@ -8,16 +8,16 @@ import { Link } from 'react-router-dom'
 export default function ProductDetailPage() {
   const { slug } = useParams()
   const { addToCart, loading } = useCart()
-  const [quantity, setQuantity] = useState(1)
-  const [added, setAdded] = useState(false)
+  const [quantity, setQuantity] = useState<number>(1)
+  const [added, setAdded] = useState<boolean>(false)
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', slug],
-    queryFn: () => getProduct(slug),
+    queryFn: () => getProduct(slug!),
   })
 
   const handleAddToCart = async () => {
-    await addToCart(product.id, quantity)
+    await addToCart(product!.id, quantity)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }

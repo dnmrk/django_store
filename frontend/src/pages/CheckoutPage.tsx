@@ -1,17 +1,26 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../api/orders'
+import type { OrderCreateData, FormErrors } from '../types'
+
+interface FormField {
+  name: keyof OrderCreateData
+  label: string
+  type: string
+  placeholder: string
+}
 
 export default function CheckoutPage() {
     const { cart, clearCart } = useCart()
     const { user } = useAuth()
     const navigate = useNavigate()
-    const [loading, setLoading] = useState(false)
-    const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState<boolean>(false)
+    const [errors, setErrors] = useState<FormErrors>({})
 
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<OrderCreateData>({
         full_name: user?.first_name ? `${user.first_name} ${user.last_name}` : '',
         email: user?.email || '',
         address: '',
@@ -19,12 +28,12 @@ export default function CheckoutPage() {
         postal_code: '',
     })
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
         setErrors({ ...errors, [e.target.name]: '' })
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setLoading(true)
         setErrors({})
@@ -34,7 +43,7 @@ export default function CheckoutPage() {
             await clearCart()
             navigate(`/orders/${order.id}`)
         } catch (err) {
-            if (err.response?.data) {
+            if (axios.isAxiosError(err) && err.response?.data) {
                 setErrors(err.response.data)
             }
         } finally {
@@ -67,7 +76,7 @@ export default function CheckoutPage() {
         )
     }
 
-    const fields = [
+    const fields: FormField[] = [
         { name: 'full_name', label: 'Full Name', type: 'text', placeholder: 'Juan dela Cruz' },
         { name: 'email', label: 'Email', type: 'email', placeholder: 'juan@email.com' },
         { name: 'address', label: 'Address', type: 'textarea', placeholder: '123 Rizal St, Barangay...' },

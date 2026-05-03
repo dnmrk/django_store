@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
@@ -8,8 +8,7 @@ const api = axios.create({
   withCredentials: true,
 })
 
-// Attach JWT access token to every request automatically
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('access_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -17,17 +16,19 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// If access token expires, try refreshing it automatically
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const original = error.config
+  async (error: AxiosError) => {
+    const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
       const refresh = localStorage.getItem('refresh_token')
       if (refresh) {
         try {
-          const { data } = await axios.post('/api/auth/token/refresh/', { refresh })
+          const { data } = await axios.post<{ access: string }>(
+            '/api/auth/token/refresh/',
+            { refresh }
+          )
           localStorage.setItem('access_token', data.access)
           original.headers.Authorization = `Bearer ${data.access}`
           return api(original)

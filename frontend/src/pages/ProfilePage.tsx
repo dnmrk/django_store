@@ -31,9 +31,9 @@ export default function ProfilePage() {
               <div className="d-flex gap-2">
                 <Link to="/orders" className="btn btn-dark">
                   My Orders
-                  {orders?.length > 0 && (
+                  {(orders?.length ?? 0) > 0 && (
                     <span className="badge bg-light text-dark ms-2">
-                      {orders.length}
+                      {orders?.length}
                     </span>
                   )}
                 </Link>
