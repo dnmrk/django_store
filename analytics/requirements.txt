@@ -1,4 +1,8 @@
 shiny
-plotly
 pandas
-jinja2
+sqlalchemy
+plotly
+python-dotenv
+psycopg2-binary
+scikit-learn
+numpy

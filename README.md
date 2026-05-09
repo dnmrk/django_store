@@ -17,7 +17,27 @@ A full-stack e-commerce application built with Django, Django REST Framework, Re
 | ML / Forecasting | pandas + scikit-learn + numpy |
 | Database | SQLite (development) |
 
----
+# Install dependencies
+pip install django pillow
+
+# Add to the Django dependencies list
+pip install psycopg2-binary python-dotenv
+
+# Apply migrations
+python manage.py migrate
+
+# Create an admin user
+python manage.py createsuperuser
+
+# Start the development server
+python manage.py runserver
+```
+
+The store will be available at `http://127.0.0.1:8000` and the admin at `http://127.0.0.1:8000/admin`.
+
+## Adding Products
+
+Use the Django admin to create categories and products. Product images are stored in `media/products/`.
 
 ## Project Structure
 

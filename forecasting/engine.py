@@ -1,3 +1,6 @@
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -12,7 +15,14 @@ DB_PATH = BASE_DIR / "db.sqlite3"
 
 
 def get_engine():
-    return create_engine(f"sqlite:///{DB_PATH}")
+    db_host = os.environ.get('DB_HOST', 'localhost')
+    db_name = os.environ.get('DB_NAME', 'django_store_db')
+    if db_host in ('localhost', '127.0.0.1', ''):
+        return create_engine(f"sqlite:///{BASE_DIR / db_name}")
+    db_user = os.environ.get('DB_USER', 'django_user')
+    db_password = os.environ.get('DB_PASSWORD', '')
+    db_port = os.environ.get('DB_PORT', '5432')
+    return create_engine(f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
 
 
 def get_daily_revenue() -> pd.DataFrame:

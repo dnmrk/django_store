@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from sqlalchemy import create_engine, text
 import pandas as pd
@@ -7,10 +8,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "db.sqlite3"
+sys.path.insert(0, str(BASE_DIR))
 
 def get_engine():
-    return create_engine(f"sqlite:///{DB_PATH}")
+    db_host = os.environ.get('DB_HOST', 'localhost')
+    db_name = os.environ.get('DB_NAME', 'django_store_db')
+    if db_host in ('localhost', '127.0.0.1', ''):
+        return create_engine(f"sqlite:///{BASE_DIR / db_name}")
+    db_user = os.environ.get('DB_USER', 'django_user')
+    db_password = os.environ.get('DB_PASSWORD', '')
+    db_port = os.environ.get('DB_PORT', '5432')
+    return create_engine(f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
 
 def get_revenue_over_time() -> pd.DataFrame:
     query = text("""
@@ -116,8 +124,6 @@ def get_kpis() -> dict:
     }
 
 def get_forecast_data(days_ahead: int = 30) -> dict:
-    import sys
-    sys.path.insert(0, str(BASE_DIR))
     from forecasting.engine import forecast_revenue, forecast_product_demand
     return {
         "revenue": forecast_revenue(days_ahead),
