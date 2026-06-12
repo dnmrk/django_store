@@ -1,0 +1,22 @@
+[Unit]
+Description=Django Store Gunicorn service
+After=network.target
+
+[Service]
+Type=simple
+User=django-store
+Group=django-store
+WorkingDirectory=/opt/django-store/current
+EnvironmentFile=/etc/django-store/django-store.env
+ExecStart=/opt/django-store/current/venv/bin/gunicorn store.wsgi:application --bind 127.0.0.1:8010 --workers 3 --timeout 60 --access-logfile - --error-logfile -
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/django-store /var/www/django-store /opt/django-store
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
