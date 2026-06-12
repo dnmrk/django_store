@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -12,15 +13,19 @@ class OrderListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
-    
+        return Order.objects.filter(user=self.request.user).prefetch_related(
+            'items__product__category'
+        )
+
 class OrderDetailView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
-    
+        return Order.objects.filter(user=self.request.user).prefetch_related(
+            'items__product__category'
+        )
+
 class OrderCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -35,15 +40,21 @@ class OrderCreateView(APIView):
         
         serializer = OrderCreateSerializer(data=request.data)
         if serializer.is_valid():
-            order = serializer.save(user=request.user)
+            # Charge the price the product has *now*, not the price frozen in
+            # the session when it was added to the cart.
+            with transaction.atomic():
+                order = serializer.save(user=request.user)
 
-            for item in cart:
-                OrderItem.objects.create(
-                    order=order,
-                    product=item['product'],
-                    quantity=item['quantity'],
-                    price=item['price'],
-                )
+                for item in cart:
+                    product = item.get('product')
+                    if product is None:
+                        continue
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=item['quantity'],
+                        price=product.price,
+                    )
 
             cart.clear()
 
