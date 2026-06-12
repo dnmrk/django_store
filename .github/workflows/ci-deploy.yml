@@ -79,12 +79,14 @@ jobs:
 
       - name: Create release archive
         run: |
+          mkdir -p release
           tar \
             --exclude='.git' \
             --exclude='venv' \
             --exclude='frontend/node_modules' \
             --exclude='django_store_db' \
-            -czf django-store-release.tgz .
+            --exclude='release' \
+            -czf release/django-store-release.tgz .
 
       - name: Upload release archive
         uses: appleboy/scp-action@v0.1.7
@@ -93,8 +95,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: django-store-release.tgz
+          source: release/django-store-release.tgz
           target: /tmp
+          strip_components: 1
 
       - name: Run server deploy helper
         uses: appleboy/ssh-action@v1.2.0
