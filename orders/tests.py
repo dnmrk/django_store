@@ -2,7 +2,8 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from products.models import Category, Product
 from .models import Order, OrderItem
@@ -65,6 +66,26 @@ class OrderCreateAPITests(APITestCase):
         item = OrderItem.objects.get(order__user=self.user)
         self.assertEqual(item.price, Decimal('15.00'))
         self.assertEqual(item.quantity, 2)
+
+    def test_create_order_with_jwt_and_existing_session_cookie_does_not_require_csrf_token(self):
+        """JWT-authenticated SPA checkout must not be blocked by admin/session cookies."""
+        client = APIClient(enforce_csrf_checks=True)
+
+        # Simulate a browser that already has a Django session cookie, e.g. from /admin/.
+        self.assertTrue(client.login(username='buyer', password='test-pass-123'))
+
+        client.post(
+            '/api/cart/add/',
+            {'product_id': self.product.id, 'quantity': 2},
+            format='json',
+        )
+        access_token = RefreshToken.for_user(self.user).access_token
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access_token))
+
+        response = client.post('/api/orders/create/', SHIPPING_DATA, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Order.objects.count(), 1)
 
     def test_create_order_clears_cart(self):
         self.client.force_authenticate(user=self.user)

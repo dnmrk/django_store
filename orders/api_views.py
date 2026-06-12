@@ -3,12 +3,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from cart.cart import Cart
 from .models import Order, OrderItem
 from .serializers import OrderSerializer, OrderCreateSerializer
 
 class OrderListView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
@@ -18,6 +20,7 @@ class OrderListView(generics.ListAPIView):
         )
 
 class OrderDetailView(generics.RetrieveAPIView):
+    authentication_classes = [JWTAuthentication]
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
@@ -27,6 +30,7 @@ class OrderDetailView(generics.RetrieveAPIView):
         )
 
 class OrderCreateView(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
