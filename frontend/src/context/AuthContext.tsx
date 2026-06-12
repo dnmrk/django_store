@@ -34,6 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = (): void => {
+    const refresh = localStorage.getItem('refresh_token')
+    if (refresh) {
+      // Revoke server-side; local cleanup proceeds even if this fails.
+      api.post('/auth/logout/', { refresh }).catch(() => {})
+    }
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     setUser(null)

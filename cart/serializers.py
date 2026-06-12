@@ -9,7 +9,7 @@ class CartItemSerializer(serializers.Serializer):
 
 class CartAddSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(min_value=1, default=1)
+    quantity = serializers.IntegerField(min_value=1, max_value=99, default=1)
     override = serializers.BooleanField(default=False)
 
 class CartSerializer(serializers.Serializer):

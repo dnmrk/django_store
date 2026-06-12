@@ -25,6 +25,25 @@ The deploy step uploads a release archive and runs the server helper:
 sudo /usr/local/bin/deploy-django-store /tmp/django-store-release.tgz
 ```
 
+## TLS
+
+The tracked nginx config listens on port 80 only. The site MUST NOT serve real
+traffic over plain HTTP — login credentials and JWTs would cross the wire in
+cleartext. One-time provisioning on the server:
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d django.henshuuz.dev   # obtains cert, adds 443 block + 80→443 redirect
+```
+
+Certbot edits `/etc/nginx/sites-available/django.henshuuz.dev` in place; re-deploys
+copy the tracked config back, so after the first `certbot` run, fold its 443/redirect
+changes into `deploy/nginx/django.henshuuz.dev.conf` and commit them.
+
+After TLS works, keep `SECURE_SSL_REDIRECT=True` in the server env (the env example
+defaults to it). Django then also sends HSTS headers (configured in `settings.py`
+when `DEBUG=False`).
+
 ## Server files
 
 Tracked templates live under `deploy/`:
