@@ -9,6 +9,7 @@ from .cart import Cart
 from .serializers import CartSerializer, CartAddSerializer, CartItemSerializer
 
 class CartDetailView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -22,6 +23,7 @@ class CartDetailView(APIView):
         return Response(serializer.data)
     
 class CartAddView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -50,6 +52,7 @@ class CartAddView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class CartRemoveView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def delete(self, request, product_id):
@@ -70,6 +73,7 @@ class CartRemoveView(APIView):
         }, status=status.HTTP_200_OK)
     
 class CartClearView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
     
     def delete(self, request):
