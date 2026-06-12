@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ARCHIVE=${1:-}
+APP_NAME=django-store
+APP_USER=django-store
+APP_ROOT=/opt/django-store
+RELEASES_DIR="$APP_ROOT/releases"
+CURRENT_LINK="$APP_ROOT/current"
+ENV_FILE=/etc/django-store/django-store.env
+STATIC_DIR=/var/www/django-store/static
+MEDIA_DIR=/var/www/django-store/media
+SERVICE=django-store.service
+
+if [[ -z "$ARCHIVE" || ! -f "$ARCHIVE" ]]; then
+  echo "Usage: $0 /path/to/django-store-release.tgz" >&2
+  exit 2
+fi
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing $ENV_FILE. Create it from deploy/env/django-store.env.example before deploying." >&2
+  exit 3
+fi
+
+install -d -o root -g root -m 755 "$APP_ROOT" "$RELEASES_DIR"
+install -d -o "$APP_USER" -g "$APP_USER" -m 755 /var/lib/django-store "$STATIC_DIR" "$MEDIA_DIR"
+
+release_id=$(date -u +%Y%m%dT%H%M%SZ)
+release_dir="$RELEASES_DIR/$release_id"
+install -d -o root -g root -m 755 "$release_dir"
+tar -xzf "$ARCHIVE" -C "$release_dir"
+
+python3 -m venv "$release_dir/venv"
+"$release_dir/venv/bin/python" -m pip install --upgrade pip
+"$release_dir/venv/bin/pip" install -r "$release_dir/requirements.txt"
+
+if [[ -d "$release_dir/frontend/dist" ]]; then
+  echo "Using prebuilt frontend assets from release archive"
+elif command -v npm >/dev/null 2>&1; then
+  (cd "$release_dir/frontend" && npm ci && npm run build)
+else
+  echo "frontend/dist is missing and npm is unavailable on the server" >&2
+  exit 4
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
+"$release_dir/venv/bin/python" "$release_dir/manage.py" migrate --noinput
+"$release_dir/venv/bin/python" "$release_dir/manage.py" collectstatic --noinput
+
+chown -R root:root "$release_dir"
+chown -R "$APP_USER:$APP_USER" /var/lib/django-store "$STATIC_DIR" "$MEDIA_DIR"
+ln -sfn "$release_dir" "$CURRENT_LINK"
+
+systemctl daemon-reload
+systemctl restart "$SERVICE"
+systemctl is-active --quiet "$SERVICE"
+
+# Keep the latest 5 releases.
+find "$RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d | sort | head -n -5 | xargs -r rm -rf
+
+echo "Deployed $APP_NAME release $release_id"
